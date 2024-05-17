@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bust Data Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .circle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .circle {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .red {
+            background-color: red;
+        }
+        .blue {
+            background-color: blue;
+        }
+        .green {
+            background-color: green;
+        }
+        .big {
+            width: 50px;
+            height: 50px;
+        }
+        .bigbig {
+            width: 100px;
+            height: 100px;
+        }
+        .yellow {
+            background-color: yellow;
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="inputContainer">
+        <label for="originalBalanceInput">Original Balance:</label>
+        <input type="number" id="originalBalanceInput" value="" min="0"><br>
+
+        <label for="betAmountInput">Bet Amount:</label>
+        <input type="number" id="betAmountInput" value="" min="0"><br>
+
+        <label for="payoutInput">Payout:</label>
+        <input type="number" id="payoutInput" value="" min="0"><br>
+
+        <label for="maximumPayoutInput">Maximum Payout:</label>
+        <input type="number" id="maximumPayoutInput" value="" min="0"><br>
+
+        <hr/>
+    </div>
+
+    <div id="dataContainer"></div>
+
+    <script>
+        let nGames = 0;
+
+        let betConfig = {
+            betAmount: 1,
+            payout: 1.25,
+            maximumPayout: 1000,
+            originalBalance: 0,
+            debug: false
+        };
+
+        let originalBalance = betConfig.originalBalance;
+        let runningBalance = betConfig.originalBalance;
+        let currentPayout = betConfig.payout;
+        let payoutIncrease = betConfig.payout;
+        let currentBetAmount = betConfig.betAmount;
+        let lowestBalance = betConfig.originalBalance;
+        let highestBalance = 0;
+        let nMaximumLoss = 0;
+        let nCurrentLoss = 0;
+        let nLossGames = 0;
+        let nMaximumLossGames = 0;
+        let nGoldGames = 0;
+        let nPrevGoldGameIndex = 0;
+        let nMaxGoldGameGap = 0;
+        let nGoldGameGap = 0;
+        
+        function updatebetConfig(event) {
+            if (!!event) {
+                betConfig.betAmount = parseFloat(document.getElementById('betAmountInput').value);
+                betConfig.originalBalance = parseFloat(document.getElementById('originalBalanceInput').value);
+                betConfig.payout = parseFloat(document.getElementById('payoutInput').value);
+                betConfig.maximumPayout = parseFloat(document.getElementById('maximumPayoutInput').value);
+            } else {
+                // Example 2: Setting input values from betConfig object properties
+                document.getElementById('betAmountInput').value = betConfig.betAmount;
+                document.getElementById('originalBalanceInput').value = betConfig.originalBalance;
+                document.getElementById('payoutInput').value = betConfig.payout;
+                document.getElementById('maximumPayoutInput').value = betConfig.maximumPayout;
+            }
+
+            displayData();
+        }
+
+        async function fetchData() {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+            return data;
+        }
+
+        function createCircle(crash_value, game_id) {
+            const circle = document.createElement('div');
+            circle.classList.add('circle');
+
+            if (crash_value >= betConfig.maximumPayout) {
+                if (nPrevGoldGameIndex) {
+                    nGoldGameGap = nGames - nPrevGoldGameIndex;
+                }
+
+                if (nGoldGameGap > nMaxGoldGameGap)
+                    nMaxGoldGameGap = nGoldGameGap;
+                
+                nGoldGames++;
+                nPrevGoldGameIndex = nGames;
+            }
+            
+            if (crash_value >= currentPayout) {
+                circle.classList.add('green');
+                if (crash_value >= 500) {
+                    circle.classList.add('big');
+                }
+            } else {
+                if (crash_value >= 500) {
+                    circle.classList.add('blue');
+                    circle.classList.add('big');
+                    console.log(game_id);
+                } else
+                    circle.classList.add('red');
+
+                // if (crash_value >= currentPayout - 100 && currentPayout > 200)
+                //     circle.classList.add('big')
+                // else if (crash_value >= currentPayout - 200 && currentPayout > 300)
+                //     circle.classList.add('bigbig')
+            }
+
+            if (crash_value >= currentPayout) {
+                runningBalance += currentBetAmount * (currentPayout - 1);
+                if (betConfig.debug)
+                    console.log(game_id, 'Win - runningBalance', runningBalance);
+                if (currentPayout > 250)
+                    console.log(game_id);
+                currentPayout = betConfig.payout;
+                payoutIncrease = betConfig.payout;
+                currentBetAmount = betConfig.betAmount;
+                nCurrentLoss = 0;
+                nLossGames = 0;
+            } else {
+                runningBalance -= currentBetAmount;
+                if (betConfig.debug)
+                    console.error(game_id, 'LOSS - runningBalance', runningBalance)
+
+                nCurrentLoss += currentBetAmount;
+                nLossGames++;
+                if (nCurrentLoss > nMaximumLoss)
+                    nMaximumLoss = nCurrentLoss;
+                if (nLossGames > nMaximumLossGames)
+                    nMaximumLossGames = nLossGames;
+
+                if (currentPayout + payoutIncrease > betConfig.maximumPayout) {
+                    payoutIncrease = (payoutIncrease - 1) / 2 + 1; // 1.25 -> 1.125 -> 1.0625
+                    currentPayout = currentPayout / 2 + payoutIncrease;
+                    currentBetAmount *= 2;
+                } else {
+                    currentPayout += payoutIncrease;
+                }
+            }
+
+            if (runningBalance < lowestBalance)
+                lowestBalance = runningBalance;
+            
+            if (runningBalance > highestBalance)
+                highestBalance = runningBalance;
+
+            return circle;
+        }
+
+        async function displayData() {
+            const data = await fetchData();
+            const container = document.getElementById('dataContainer');
+            container.innerHTML = ''; // Clear previous data
+
+            nGames = 0;
+            
+            currentBetAmount = betConfig.betAmount;
+            currentPayout = betConfig.payout;
+            payoutIncrease = betConfig.payout;
+            runningBalance = betConfig.originalBalance;
+            lowestBalance = betConfig.originalBalance;
+            highestBalance = 0;
+            nCurrentLoss = 0;
+            nMaximumLoss = 0;
+            nLossGames = 0;
+            nMaximumLossGames = 0;
+            nGoldGames = 0;
+            nPrevGoldGameIndex = 0;
+            nMaxGoldGameGap = 0;
+
+            console.log('data', data.length);
+
+            data.forEach(({game_id, crash_value}) => {
+                if (!crash_value) return;
+
+                const containerDiv = document.createElement('div');
+                containerDiv.classList.add('circle-container');
+
+                const gameIdElement = document.createElement('span');
+                gameIdElement.textContent = game_id;
+                containerDiv.appendChild(gameIdElement);
+
+                const bustValueElement = document.createElement('span');
+                bustValueElement.textContent = " - Busted At: " + crash_value + ", Bet At: " + currentPayout.toFixed(4) + " (" + currentBetAmount + ")";
+                containerDiv.appendChild(bustValueElement);
+
+                const circle = createCircle(crash_value, game_id);
+                containerDiv.appendChild(circle);
+
+                const balanceElement = document.createElement('span');
+                balanceElement.textContent = "Balance: " + runningBalance.toFixed(4) + ", Cont Loss: " + nCurrentLoss + ", Contd Loss Games - " + nLossGames;
+                containerDiv.appendChild(balanceElement);
+
+                container.appendChild(containerDiv);
+                nGames++;
+            });
+
+            console.log('Number of Total Games', nGames);
+            console.log('Lowest Balance', lowestBalance);
+            console.log('Highest Balance', highestBalance);
+            console.log('Remaining Balance', runningBalance);
+            // console.log('Net Profit', runningBalance - originalBalance);
+            console.log('Maximum Loss', nMaximumLoss);
+            console.log('Maximum Continuous Loss Games', nMaximumLossGames);
+            console.log('Gold Games', nGoldGames);
+            console.log('Max Gold Game Gap', nMaxGoldGameGap);
+        }
+
+        // Add event listeners to input boxes
+        document.getElementById('betAmountInput').addEventListener('input', updatebetConfig);
+        document.getElementById('originalBalanceInput').addEventListener('input', updatebetConfig);
+        document.getElementById('payoutInput').addEventListener('input', updatebetConfig);
+        document.getElementById('maximumPayoutInput').addEventListener('input', updatebetConfig);
+
+        // Display initial data
+        updatebetConfig();
+    </script>
+</body>
+</html>
