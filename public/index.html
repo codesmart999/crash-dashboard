@@ -159,8 +159,11 @@
 
             // Prepend current time to the log message
             li.innerHTML = `<span class="fw-bold">${currentTime}</span> ${message}`;
-            logPanel.appendChild(li);
+            
+            // Insert the new log entry at the beginning of the list
+            logPanel.insertBefore(li, logPanel.firstChild);
         }
+
     </script>
 </body>
 </html>
