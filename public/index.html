@@ -118,7 +118,7 @@
 
                         const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
                         const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
-                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
+                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit.toFixed(5)}`, profitStatus, objGameInfo.converted_reported_at);
                     });
                 })
                 .catch(error => {
