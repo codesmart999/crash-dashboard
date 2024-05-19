@@ -225,7 +225,7 @@ app.post('/api/game_ended', (req, res) => {
                 if (err) {
                     res.status(500).json({ message: 'Error updating game record', error: err });
                 } else {
-                    res.status(200).json({ message: 'Game record updated successfully' });
+                    res.status(200).json({ message: `Game ${game_id} record updated successfully` });
                 }
             });
         } else {
@@ -236,7 +236,7 @@ app.post('/api/game_ended', (req, res) => {
                 if (err) {
                     res.status(500).json({ message: 'Error inserting game record', error: err });
                 } else {
-                    res.status(200).json({ message: 'New game record inserted successfully' });
+                    res.status(200).json({ message: `New game ${game_id}  record inserted successfully` });
                 }
             });
         }
