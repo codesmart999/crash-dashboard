@@ -113,12 +113,12 @@
                     arrGameInfo.forEach((objGameInfo) => {
                         if (objGameInfo.payout) {
                             const profitCircle = '<span class="status-circle"></span>';
-                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount.toFixed(5)}, Real Bet Amount: ${objGameInfo.real_bet_amount.toFixed(5)}, Payout: ${objGameInfo.payout.toFixed(5)}`, 'grey', objGameInfo.converted_reported_at);
+                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
                         }
 
                         const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
                         const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
-                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit.toFixed(5)}`, profitStatus, objGameInfo.converted_reported_at);
+                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
                     });
                 })
                 .catch(error => {
@@ -144,13 +144,13 @@
 
             if (data.hasOwnProperty('bet_placed')) {
                 const profitCircle = '<span class="status-circle"></span>';
-                updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${data.bet_placed.attempted_bet_amount.toFixed(5)}, Real Bet Amount: ${data.bet_placed.real_bet_amount.toFixed(5)}, Payout: ${data.bet_placed.payout.toFixed(5)}`, 'grey');
+                updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${data.bet_placed.attempted_bet_amount}, Real Bet Amount: ${data.bet_placed.real_bet_amount}, Payout: ${data.bet_placed.payout}`, 'grey');
             }
 
             if (data.hasOwnProperty('game_ended')) {
                 const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.profit > 0 ? 'green' : 'grey');
                 const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
-                updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit.toFixed(5)}`, profitStatus);
+                updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit}`, profitStatus);
             }
         };
 
