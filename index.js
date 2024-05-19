@@ -220,7 +220,7 @@ app.post('/api/game_ended', (req, res) => {
             }
             // Update the existing record
             const updateSql = 'UPDATE games SET crash_value = ?, balance_after = ?, profit = ? WHERE game_id = ?';
-            const updateValues = [crash_value, balance, profit, game_id];
+            const updateValues = [crash_value, balance, roundLastFiveDigits(profit), game_id];
             db.run(updateSql, updateValues, function(err) {
                 if (err) {
                     res.status(500).json({ message: 'Error updating game record', error: err });
@@ -246,7 +246,7 @@ app.post('/api/game_ended', (req, res) => {
                 client.send(JSON.stringify({ balance, game_ended: {
                     game_id,
                     crash_value,
-                    profit
+                    profit: roundLastFiveDigits(profit)
                 } }));
             }
         });
@@ -372,6 +372,9 @@ app.get('/api/load_all_games', (req, res) => {
     });
 });
 
+function roundLastFiveDigits(number) {
+    return Math.round(number * 100000) / 100000;
+}
 
 // Start the server
 server.listen(PORT, () => {
