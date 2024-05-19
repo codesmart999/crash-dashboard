@@ -113,7 +113,7 @@
                     arrGameInfo.forEach((objGameInfo) => {
                         if (objGameInfo.payout) {
                             const profitCircle = '<span class="status-circle"></span>';
-                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
+                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount.toFixed(5)}, Real Bet Amount: ${objGameInfo.real_bet_amount.toFixed(5)}, Payout: ${objGameInfo.payout.toFixed(5)}`, 'grey', objGameInfo.converted_reported_at);
                         }
 
                         const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
