@@ -22,6 +22,9 @@
         .status-red {
             background-color: #dc3545;
         }
+        .status-grey {
+            background-color: #6c757d;
+        }
         .list-red {
             border-left: 5px solid #dc3545; /* Red border */
         }
@@ -76,7 +79,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title">Log Panel</h5>
+                        <h5 class="card-title">Log Panel (<a href="#" id="loadAllGames">Load All Games</a>)</h5>
                     </div>
                     <div class="card-body">
                         <ul id="logPanel" class="list-group"></ul>
@@ -93,6 +96,35 @@
     <!-- WebSocket script -->
     <script>
         const ws = new WebSocket('ws://localhost:8000');
+
+        const loadAllGamesButton = document.getElementById('loadAllGames'); // Assuming you have an ID for the button
+        
+        loadAllGamesButton.addEventListener('click', () => {
+            fetch('/api/load_all_games')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch data');
+                    }
+                    return response.json();
+                })
+                .then(arrGameInfo => {
+                    cleanLogPanel(); // Clean the Log Panel
+                    
+                    arrGameInfo.forEach((objGameInfo) => {
+                        if (objGameInfo.payout) {
+                            const profitCircle = '<span class="status-circle"></span>';
+                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
+                        }
+
+                        const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
+                        const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading all games:', error);
+                });
+        });
 
         ws.onopen = () => {
             console.log('WebSocket connection established.');
@@ -116,11 +148,17 @@
             }
 
             if (data.hasOwnProperty('game_ended')) {
-                const profitStatus = data.game_ended.profit < 0 ? 'red' : 'green';
+                const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.profit > 0 ? 'green' : 'grey');
                 const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
                 updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit}`, profitStatus);
             }
         };
+
+        // Function to clean the Log Panel
+        function cleanLogPanel() {
+            const logPanel = document.getElementById('logPanel'); // Assuming logPanel is the ID of the Log Panel
+            logPanel.innerHTML = ''; // Empty the Log Panel
+        }
 
         function updateScriptStatus(scriptStatus) {
             const scriptStatusCircle = document.getElementById('scriptStatusCircle');
@@ -148,17 +186,17 @@
         }
 
         // Function to update the log panel
-        function updateLogPanel(message, status) {
+        function updateLogPanel(message, status, reported_at = '') {
             const logPanel = document.getElementById('logPanel');
             const li = document.createElement('li');
             li.classList.add('list-group-item');
             li.classList.add(`list-${status}`);
 
-            // Get current time in hh:mm format
-            const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            // Get current time in hh:mm format or use reported_at if provided
+            const timeToShow = reported_at ? new Date(reported_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
             // Prepend current time to the log message
-            li.innerHTML = `<span class="fw-bold">${currentTime}</span> ${message}`;
+            li.innerHTML = `<span class="fw-bold">${timeToShow}</span> ${message}`;
             
             // Insert the new log entry at the beginning of the list
             logPanel.insertBefore(li, logPanel.firstChild);

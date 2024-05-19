@@ -26,7 +26,8 @@ db.serialize(() => {
         payout REAL DEFAULT 0,
         balance_before REAL DEFAULT 0,
         balance_after REAL DEFAULT 0,
-        profit REAL DEFAULT 0
+        profit REAL DEFAULT 0,
+        reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS script_status (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -184,8 +185,8 @@ app.post('/api/bet_placed', (req, res) => {
 
 app.post('/api/game_ended', (req, res) => {
     let { game_id, crash_value, balance } = req.body;
-    if (!game_id || !crash_value || !balance) {
-        res.status(400).json({ message: 'game_id, crash_value, and balance are required' });
+    if (!game_id || !crash_value) {
+        res.status(400).json({ message: 'game_id and crash_value are required' });
         return;
     }
 
@@ -212,9 +213,6 @@ app.post('/api/game_ended', (req, res) => {
             const previousBalance = parseFloat(row.balance_before);
             const previousRealBetAmount = row.real_bet_amount;
 
-            console.log('balance_after', balance);
-            console.log('balance_before', previousBalance);
-            
             if (balance > previousBalance) {
                 profit = (balance - previousBalance) - previousRealBetAmount;
             } else {
@@ -254,6 +252,53 @@ app.post('/api/game_ended', (req, res) => {
         });
     });
 });
+
+app.post('/api/add_games', (req, res) => {
+    const { data } = req.body;
+    if (!Array.isArray(data)) {
+        res.status(400).json({ message: 'Array of game data is required' });
+        return;
+    }
+
+    // Keep track of game_ids already inserted
+    const existingGameIds = new Set();
+
+    // Check if the game with the same game_id already exists
+    const selectSql = 'SELECT game_id FROM games WHERE game_id = ?';
+    data.forEach(game => {
+        const { game_id, crash_value } = game;
+        if (!game_id || !crash_value) {
+            res.status(400).json({ message: 'game_id and crash_value are required for each game' });
+            return;
+        }
+
+        db.get(selectSql, [game_id], (err, row) => {
+            if (err) {
+                console.error('Error checking game existence:', err);
+                return;
+            }
+
+            // If the game with the same game_id doesn't exist, insert it
+            if (!row && !existingGameIds.has(game_id)) {
+                existingGameIds.add(game_id);
+
+                // Insert the game data into the table
+                const insertSql = 'INSERT INTO games (game_id, crash_value) VALUES (?, ?)';
+                const insertValues = [game_id, crash_value];
+                db.run(insertSql, insertValues, function(err) {
+                    if (err) {
+                        console.error('Error inserting game record:', err);
+                    } else {
+                        console.log('New game record inserted successfully');
+                    }
+                });
+            }
+        });
+    });
+
+    res.status(200).json({ message: 'Games data processed successfully' });
+});
+
 
 // API to indicate script started
 app.post('/api/script_started', (req, res) => {
@@ -310,6 +355,23 @@ app.get('/api/get_script_status', (req, res) => {
         }
     });
 });
+
+app.get('/api/load_all_games', (req, res) => {
+    const sql = `
+        SELECT *, 
+               datetime(reported_at, 'localtime') as converted_reported_at 
+        FROM games 
+        ORDER BY game_id ASC`;
+    
+    db.all(sql, (err, rows) => {
+        if (err) {
+            res.status(500).json({ message: 'Error fetching data', error: err });
+        } else {
+            res.json(rows);
+        }
+    });
+});
+
 
 // Start the server
 server.listen(PORT, () => {

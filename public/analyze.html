@@ -66,8 +66,8 @@
 
         let betConfig = {
             betAmount: 1,
-            payout: 1.25,
-            maximumPayout: 1000,
+            payout: 1.2,
+            maximumPayout: 1920,
             originalBalance: 0,
             debug: false
         };
@@ -136,7 +136,6 @@
                 if (crash_value >= 500) {
                     circle.classList.add('blue');
                     circle.classList.add('big');
-                    console.log(game_id);
                 } else
                     circle.classList.add('red');
 
@@ -150,8 +149,6 @@
                 runningBalance += currentBetAmount * (currentPayout - 1);
                 if (betConfig.debug)
                     console.log(game_id, 'Win - runningBalance', runningBalance);
-                if (currentPayout > 250)
-                    console.log(game_id);
                 currentPayout = betConfig.payout;
                 payoutIncrease = betConfig.payout;
                 currentBetAmount = betConfig.betAmount;
