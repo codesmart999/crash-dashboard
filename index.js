@@ -289,7 +289,7 @@ app.post('/api/add_games', (req, res) => {
                     if (err) {
                         console.error('Error inserting game record:', err);
                     } else {
-                        console.log('New game record inserted successfully');
+                        console.log(`New game ${game_id} record inserted successfully`);
                     }
                 });
             }
