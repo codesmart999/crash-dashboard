@@ -82,11 +82,17 @@ app.get('/api/import_csv', (req, res) => {
                     lines.forEach(line => {
                         const [game_info, crash_value] = line.split(',');
                         const [_, game_id] = game_info.split(' ');
-                        const sql = 'INSERT OR IGNORE INTO games (game_id, crash_value) VALUES (?, ?)';
-                        const values = [parseInt(game_id), parseFloat(crash_value)];
-                        db.run(sql, values, function(err) {
-                            if (err) {
-                                console.error(`Error inserting data for game_id ${game_id}`, err);
+                        
+                        const selectSql = 'SELECT * FROM games WHERE game_id = ?';
+                        db.get(selectSql, [game_id], (err, row) => {
+                            if (!row) {
+                                const sql = 'INSERT OR IGNORE INTO games (game_id, crash_value) VALUES (?, ?)';
+                                const values = [parseInt(game_id), parseFloat(crash_value)];
+                                db.run(sql, values, function(err) {
+                                    if (err) {
+                                        console.error(`Error inserting data for game_id ${game_id}`, err);
+                                    }
+                                });
                             }
                         });
                     });
@@ -375,7 +381,7 @@ app.get('/api/load_all_games', (req, res) => {
 });
 
 app.get('/api/analyze/:last_n_games?', (req, res) => {
-    let last_n_games = 300;//req.params.last_n_games || 3000;
+    let last_n_games = req.params.last_n_games || 3000;
 
     // Retrieve the last N games from the database
     const sql = `
@@ -392,12 +398,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         }
 
         // Convert crash values to numbers
-        for (let i = 0; i < rows.length; i++) {
-            console.log(rows[i]);
-        }
         const crashValues = rows.map(row => parseFloat(row.crash_value));
-
-        console.log('crashValues', crashValues);
 
         // Array of values to analyze
         const arr_values = [1.2, 50, 100, 150, 200, 500, 1000];
