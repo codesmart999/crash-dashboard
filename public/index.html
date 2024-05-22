@@ -213,6 +213,8 @@
             }
 
             if (data.hasOwnProperty('game_ended')) {
+                analyzeGames();
+                
                 if (debugParam === '1') {
                     const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.crash_value > 150 ? 'yellow' : (data.game_ended.crash_value > 50 ? 'blue' : (data.game_ended.profit > 0 ? 'green' : 'grey')));
                     const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
