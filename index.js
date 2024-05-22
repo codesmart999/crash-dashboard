@@ -398,7 +398,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         }
 
         // Convert crash values to numbers
-        const crashValues = rows.map(row => parseFloat(row.crash_value));
+        const crashValues = rows.map(row => {
+            if (typeof row.crash_value == "string")
+                return parseFloat(row.crash_value.replace(",", "")); // without commas
+            else
+                return row.crash_value;
+        });
 
         // Array of values to analyze
         const arr_values = [1.2, 50, 100, 150, 200, 500, 1000];
@@ -411,13 +416,11 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         arr_values.forEach((value, index) => {
             let lastAppearanceIndex = -1;
             for (let i = 0; i < crashValues.length; i++) {
-                console.log(crashValues[i], value)
                 if (crashValues[i] >= value) {
                     lastAppearanceIndex = i;
                     break;
                 }
             }
-            console.log('lastAppearanceIndex for ' + value, lastAppearanceIndex);
             const gamesAgo = lastAppearanceIndex !== -1 ? lastAppearanceIndex + 1 : 'None';
 
             // Initialize counters for different ranges
