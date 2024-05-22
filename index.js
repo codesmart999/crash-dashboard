@@ -440,7 +440,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_100_games.ratio = appearanceCounts.last_100_games.count / 100 * 100; // percentage
-            if (appearanceCounts.last_100_games.ratio >= arr_rates_for_value[index])
+            if (value <= 100 && appearanceCounts.last_100_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_100_games.color = "red";
 
             crashValues.slice(0, 300).forEach(val => {
@@ -449,7 +449,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_300_games.ratio = appearanceCounts.last_300_games.count / 300 * 100; // percentage
-            if (appearanceCounts.last_300_games.ratio >= arr_rates_for_value[index])
+            if (value <= 300 && appearanceCounts.last_300_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_300_games.color = "red";
 
             crashValues.slice(0, 1000).forEach(val => {
@@ -458,7 +458,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_1000_games.ratio = appearanceCounts.last_1000_games.count / 1000 * 100; // percentage
-            if (appearanceCounts.last_1000_games.ratio >= arr_rates_for_value[index])
+            if (value <= 1000 && appearanceCounts.last_1000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1000_games.color = "red";
 
             crashValues.slice(0, 3000).forEach(val => {
@@ -467,7 +467,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_3000_games.ratio = appearanceCounts.last_3000_games.count / 3000 * 100; // percentage
-            if (appearanceCounts.last_3000_games.ratio >= arr_rates_for_value[index])
+            if (value <= 3000 && appearanceCounts.last_3000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_3000_games.color = "red";
 
             crashValues.slice(0, 15000).forEach(val => {
@@ -476,7 +476,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_15000_games.ratio = appearanceCounts.last_15000_games.count / 15000 * 100; // percentage
-            if (appearanceCounts.last_15000_games.ratio >= arr_rates_for_value[index])
+            if (value <= 15000 && appearanceCounts.last_15000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_15000_games.color = "red";
 
             crashValues.slice(0, last_n_games).forEach(val => {
@@ -485,7 +485,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 }
             });
             appearanceCounts.last_n_games.ratio = appearanceCounts.last_n_games.count / last_n_games * 100; // percentage
-            if (appearanceCounts.last_n_games.ratio >= arr_rates_for_value[index])
+            if (value <= last_n_games && appearanceCounts.last_n_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_n_games.color = "red";
 
             // Add analysis results to the result object
