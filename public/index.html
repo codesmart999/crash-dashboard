@@ -23,7 +23,10 @@
             background-color: #dc3545;
         }
         .status-grey {
-            background-color: #6c757d;
+            background-color: #999999;
+        }
+        .status-yellow {
+            background-color: yellow;
         }
         .list-red {
             border-left: 5px solid #dc3545; /* Red border */
@@ -32,7 +35,10 @@
             border-left: 5px solid #28a745; /* Green border */
         }
         .list-grey {
-            border-left: 5px solid #6c757d; /* Grey border */
+            border-left: 5px solid #999999; /* Grey border */
+        }
+        .list-yellow {
+            border-left: 5px solid yellow;
         }
         .fixed-top {
             position: fixed;
@@ -45,11 +51,26 @@
         .content {
             padding-top: 100px; /* Adjust this value as needed */
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .red {
+            color: red;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row fixed-top">
+        <div class="row fixed-top debug">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -61,7 +82,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 debug">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title">Balance</h5>
@@ -75,6 +96,28 @@
     </div>
 
     <div class="container mt-5 content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Analyze</h5>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <label for="lastNGames">Number of Last Games:</label>
+                            <input type="number" id="lastNGames" name="lastNGames" min="1" value="3000">
+                            <button onclick="analyzeGames()">Analyze</button>
+                        </div>
+                        <div id="analysisResult">
+                            <!-- Analysis result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -98,6 +141,16 @@
         const ws = new WebSocket('ws://localhost:8000');
 
         const loadAllGamesButton = document.getElementById('loadAllGames'); // Assuming you have an ID for the button
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugParam = urlParams.get('debug');
+
+        if (debugParam !== '1') {
+            const debugElements = document.querySelectorAll('.debug');
+            debugElements.forEach(element => {
+                element.style.display = 'none';
+            });
+        }
         
         loadAllGamesButton.addEventListener('click', () => {
             fetch('/api/load_all_games')
@@ -111,14 +164,20 @@
                     cleanLogPanel(); // Clean the Log Panel
                     
                     arrGameInfo.forEach((objGameInfo) => {
-                        if (objGameInfo.payout) {
-                            const profitCircle = '<span class="status-circle"></span>';
-                            updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
-                        }
+                        if (debugParam === '1') {
+                            if (objGameInfo.payout) {
+                                const profitCircle = '<span class="status-circle"></span>';
+                                updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
+                            }
 
-                        const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
-                        const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
-                        updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
+                            const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
+                            const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                            updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
+                        } else {
+                            const profitStatus = objGameInfo.crash_value < 50 ? 'grey' : (objGameInfo.crash_value > 150 ? 'yellow' : 'green');
+                            const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                            updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}`, profitStatus, objGameInfo.converted_reported_at);
+                        }
                     });
                 })
                 .catch(error => {
@@ -142,15 +201,21 @@
                 updateBalance(data.balance);
             }
 
-            if (data.hasOwnProperty('bet_placed')) {
+            if (data.hasOwnProperty('bet_placed') && debugParam === '1') {
                 const profitCircle = '<span class="status-circle"></span>';
                 updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${data.bet_placed.attempted_bet_amount}, Real Bet Amount: ${data.bet_placed.real_bet_amount}, Payout: ${data.bet_placed.payout}`, 'grey');
             }
 
             if (data.hasOwnProperty('game_ended')) {
-                const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.profit > 0 ? 'green' : 'grey');
-                const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
-                updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit}`, profitStatus);
+                if (debugParam === '1') {
+                    const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.profit > 0 ? 'green' : 'grey');
+                    const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                    updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit}`, profitStatus);
+                } else {
+                    const profitStatus = data.game_ended.crash_value < 50 ? 'grey' : (data.game_ended.crash_value > 150 ? 'yellow' : 'green');
+                    const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                    updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}`, profitStatus);
+                }
             }
         };
 
@@ -202,6 +267,56 @@
             logPanel.insertBefore(li, logPanel.firstChild);
         }
 
+        function analyzeGames() {
+            const lastNGames = document.getElementById('lastNGames').value;
+            fetch(`/api/analyze/${lastNGames}`)
+                .then(response => response.json())
+                .then(data => displayAnalysisResult(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayAnalysisResult(result) {
+            const analysisResultDiv = document.getElementById('analysisResult');
+            analysisResultDiv.innerHTML = '';
+
+            // Create a table for displaying the analysis result
+            const table = document.createElement('table');
+
+            // Create the header row
+            const headerRow = table.insertRow();
+            const headerValues = ['Crash Value', 'Appeared for the last time', 'Last 100 Games', 'Last 300 Games', 'Last 1000 Games', 'Last 3000 Games', 'Last N Games'];
+            headerValues.forEach(value => {
+                const th = document.createElement('th');
+                th.textContent = value;
+                headerRow.appendChild(th);
+            });
+
+            // Create a row for each crash value
+            for (const value in result) {
+                const analysis = result[value];
+                const row = table.insertRow();
+
+                // Add the crash value
+                const valueCell = row.insertCell();
+                valueCell.textContent = ">= " + value + " (" + analysis.expected_rate + "%)";
+
+                // Add the games ago information
+                const gamesAgoCell = row.insertCell();
+                gamesAgoCell.textContent = analysis.games_ago + " games ago";
+
+                // Add the analysis information
+                for (const range in analysis.appearance_counts) {
+                    const rangeAnalysis = analysis.appearance_counts[range];
+                    const cell = row.insertCell();
+                    cell.textContent = `${rangeAnalysis.count} (${rangeAnalysis.ratio.toFixed(2)}%)`;
+                    if (rangeAnalysis.color === 'red') {
+                        cell.classList.add('red');
+                    }
+                }
+            }
+
+            analysisResultDiv.appendChild(table);
+        }
     </script>
 </body>
 </html>

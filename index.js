@@ -361,14 +361,123 @@ app.get('/api/load_all_games', (req, res) => {
         SELECT *, 
                datetime(reported_at, 'localtime') as converted_reported_at 
         FROM games 
-        ORDER BY game_id ASC`;
+        ORDER BY game_id DESC
+        LIMIT 3000`;
     
     db.all(sql, (err, rows) => {
         if (err) {
             res.status(500).json({ message: 'Error fetching data', error: err });
         } else {
-            res.json(rows);
+            res.json(rows.reverse());
         }
+    });
+});
+
+app.get('/api/analyze/:last_n_games?', (req, res) => {
+    let last_n_games = req.params.last_n_games || 3000;
+
+    // Retrieve the last N games from the database
+    const sql = `
+        SELECT game_id, crash_value 
+        FROM games 
+        WHERE crash_value > 0
+        ORDER BY game_id DESC 
+        LIMIT ?`;
+    
+    db.all(sql, [parseInt(last_n_games)], (err, rows) => {
+        if (err) {
+            res.status(500).json({ message: 'Error fetching data', error: err });
+            return;
+        }
+
+        // Convert crash values to numbers
+        const crashValues = rows.map(row => parseFloat(row.crash_value));
+
+        // Array of values to analyze
+        const arr_values = [1.2, 50, 100, 150, 200];
+        const arr_rates_for_value = [82.5, 1.98, 0.99, 0.66, 0.495];
+
+        // Initialize result object
+        let analysisResult = {};
+
+        // Loop through each value to analyze
+        arr_values.forEach((value, index) => {
+            const lastAppearanceIndex = crashValues.findIndex(val => val >= value);
+            const gamesAgo = lastAppearanceIndex !== -1 ? lastAppearanceIndex + 1 : crashValues.length;
+
+            // Initialize counters for different ranges
+            const appearanceCounts = {
+                last_100_games: {count: 0, ratio: 0, color: 'green', games: '100'},
+                last_300_games: {count: 0, ratio: 0, color: 'green', games: '300'},
+                last_1000_games: {count: 0, ratio: 0, color: 'green', games: '1000'},
+                last_3000_games: {count: 0, ratio: 0, color: 'green', games: '3000'},
+                last_n_games: {count: 0, ratio: 0, color: 'green', games: last_n_games}
+            };
+
+            // Count appearances within different ranges
+            crashValues.slice(0, 100).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_100_games.count++;
+                }
+            });
+            appearanceCounts.last_100_games.ratio = appearanceCounts.last_100_games.count / 100 * 100; // percentage
+            if (appearanceCounts.last_100_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_100_games.color = "red";
+
+            crashValues.slice(0, 300).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_300_games.count++;
+                }
+            });
+            appearanceCounts.last_300_games.ratio = appearanceCounts.last_300_games.count / 300 * 100; // percentage
+            if (appearanceCounts.last_300_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_300_games.color = "red";
+
+            crashValues.slice(0, 1000).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_1000_games.count++;
+                }
+            });
+            appearanceCounts.last_1000_games.ratio = appearanceCounts.last_1000_games.count / 1000 * 100; // percentage
+            if (appearanceCounts.last_1000_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_1000_games.color = "red";
+
+            crashValues.slice(0, 3000).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_3000_games.count++;
+                }
+            });
+            appearanceCounts.last_3000_games.ratio = appearanceCounts.last_3000_games.count / 3000 * 100; // percentage
+            if (appearanceCounts.last_3000_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_3000_games.color = "red";
+
+            crashValues.slice(0, last_n_games).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_n_games.count++;
+                }
+            });
+            appearanceCounts.last_n_games.ratio = appearanceCounts.last_n_games.count / last_n_games * 100; // percentage
+            if (appearanceCounts.last_n_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_n_games.color = "red";
+
+            // Add analysis results to the result object
+            analysisResult[value] = {
+                games_ago: gamesAgo,
+                expected_rate: arr_rates_for_value[index],
+                appearance_counts: appearanceCounts
+            };
+        });
+
+        // Sort analysisResult by keys in ascending order
+        // analysisResult = Object.keys(analysisResult)
+        //     .sort((a, b) => parseFloat(a) - parseFloat(b))
+        //     .reduce((acc, key) => ({
+        //         ...acc,
+        //         [key]: analysisResult[key]
+        //     }), {});
+
+        // Send the analysis result as a response
+        res.status(200).json(analysisResult);
     });
 });
 
