@@ -16,6 +16,9 @@
             display: inline-block;
             margin-right: 5px;
         }
+        .status-blue {
+            background-color: blue;
+        }
         .status-green {
             background-color: #28a745;
         }
@@ -27,6 +30,9 @@
         }
         .status-yellow {
             background-color: yellow;
+        }
+        .list-blue {
+            border-left: 5px solid blue; /* Red border */
         }
         .list-red {
             border-left: 5px solid #dc3545; /* Red border */
@@ -105,7 +111,7 @@
                     <div class="card-body">
                         <div>
                             <label for="lastNGames">Number of Last Games:</label>
-                            <input type="number" id="lastNGames" name="lastNGames" min="1" value="3000">
+                            <input type="number" id="lastNGames" name="lastNGames" min="1" value="30000">
                             <button onclick="analyzeGames()">Analyze</button>
                         </div>
                         <div id="analysisResult">
@@ -170,11 +176,11 @@
                                 updateLogPanel(`${profitCircle} Bet placed. Attempted Bet Amount: ${objGameInfo.attempted_bet_amount}, Real Bet Amount: ${objGameInfo.real_bet_amount}, Payout: ${objGameInfo.payout}`, 'grey', objGameInfo.converted_reported_at);
                             }
 
-                            const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.profit > 0 ? 'green' : 'grey');
+                            const profitStatus = objGameInfo.profit < 0 ? 'red' : (objGameInfo.crash_value > 150 ? 'yellow' : (objGameInfo.crash_value > 50 ? 'blue' : (objGameInfo.profit > 0 ? 'green' : 'grey')));
                             const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
                             updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}, Profit: ${objGameInfo.profit}`, profitStatus, objGameInfo.converted_reported_at);
                         } else {
-                            const profitStatus = objGameInfo.crash_value < 50 ? 'grey' : (objGameInfo.crash_value > 150 ? 'yellow' : 'green');
+                            const profitStatus = objGameInfo.crash_value < 50 ? 'grey' : (objGameInfo.crash_value > 150 ? 'yellow' : 'blue');
                             const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
                             updateLogPanel(`${profitCircle} Game ID: ${objGameInfo.game_id}, Crash Value: ${objGameInfo.crash_value}`, profitStatus, objGameInfo.converted_reported_at);
                         }
@@ -208,11 +214,11 @@
 
             if (data.hasOwnProperty('game_ended')) {
                 if (debugParam === '1') {
-                    const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.profit > 0 ? 'green' : 'grey');
+                    const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.crash_value > 150 ? 'yellow' : (data.game_ended.crash_value > 50 ? 'blue' : (data.game_ended.profit > 0 ? 'green' : 'grey')));
                     const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
                     updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}, Profit: ${data.game_ended.profit}`, profitStatus);
                 } else {
-                    const profitStatus = data.game_ended.crash_value < 50 ? 'grey' : (data.game_ended.crash_value > 150 ? 'yellow' : 'green');
+                    const profitStatus = data.game_ended.crash_value < 50 ? 'grey' : (data.game_ended.crash_value > 150 ? 'yellow' : 'blue');
                     const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
                     updateLogPanel(`${profitCircle} Game ID: ${data.game_ended.game_id}, Crash Value: ${data.game_ended.crash_value}`, profitStatus);
                 }
@@ -284,7 +290,7 @@
 
             // Create the header row
             const headerRow = table.insertRow();
-            const headerValues = ['Crash Value', 'Appeared for the last time', 'Last 100 Games', 'Last 300 Games', 'Last 1000 Games', 'Last 3000 Games', 'Last N Games'];
+            const headerValues = ['Crash Value', 'Appeared for the last time', 'Last 100 Games', 'Last 300 Games', 'Last 1000 Games', 'Last 3000 Games', 'Last 15000 Games', 'Last N Games'];
             headerValues.forEach(value => {
                 const th = document.createElement('th');
                 th.textContent = value;

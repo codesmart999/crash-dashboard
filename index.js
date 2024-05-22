@@ -19,7 +19,8 @@ const db = new sqlite3.Database(DB_PATH);
 // Create 'games' table if it doesn't exist
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS games (
-        game_id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_id INTEGER,
         crash_value REAL NOT NULL,
         attempted_bet_amount REAL DEFAULT 0,
         real_bet_amount REAL DEFAULT 0,
@@ -374,7 +375,7 @@ app.get('/api/load_all_games', (req, res) => {
 });
 
 app.get('/api/analyze/:last_n_games?', (req, res) => {
-    let last_n_games = req.params.last_n_games || 3000;
+    let last_n_games = 300;//req.params.last_n_games || 3000;
 
     // Retrieve the last N games from the database
     const sql = `
@@ -391,19 +392,32 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         }
 
         // Convert crash values to numbers
+        for (let i = 0; i < rows.length; i++) {
+            console.log(rows[i]);
+        }
         const crashValues = rows.map(row => parseFloat(row.crash_value));
 
+        console.log('crashValues', crashValues);
+
         // Array of values to analyze
-        const arr_values = [1.2, 50, 100, 150, 200];
-        const arr_rates_for_value = [82.5, 1.98, 0.99, 0.66, 0.495];
+        const arr_values = [1.2, 50, 100, 150, 200, 500, 1000];
+        const arr_rates_for_value = [82.5, 1.98, 0.99, 0.66, 0.495, 0.198, 0.099];
 
         // Initialize result object
         let analysisResult = {};
 
         // Loop through each value to analyze
         arr_values.forEach((value, index) => {
-            const lastAppearanceIndex = crashValues.findIndex(val => val >= value);
-            const gamesAgo = lastAppearanceIndex !== -1 ? lastAppearanceIndex + 1 : crashValues.length;
+            let lastAppearanceIndex = -1;
+            for (let i = 0; i < crashValues.length; i++) {
+                console.log(crashValues[i], value)
+                if (crashValues[i] >= value) {
+                    lastAppearanceIndex = i;
+                    break;
+                }
+            }
+            console.log('lastAppearanceIndex for ' + value, lastAppearanceIndex);
+            const gamesAgo = lastAppearanceIndex !== -1 ? lastAppearanceIndex + 1 : 'None';
 
             // Initialize counters for different ranges
             const appearanceCounts = {
@@ -411,6 +425,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 last_300_games: {count: 0, ratio: 0, color: 'green', games: '300'},
                 last_1000_games: {count: 0, ratio: 0, color: 'green', games: '1000'},
                 last_3000_games: {count: 0, ratio: 0, color: 'green', games: '3000'},
+                last_15000_games: {count: 0, ratio: 0, color: 'green', games: '15000'},
                 last_n_games: {count: 0, ratio: 0, color: 'green', games: last_n_games}
             };
 
@@ -450,6 +465,15 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_3000_games.ratio = appearanceCounts.last_3000_games.count / 3000 * 100; // percentage
             if (appearanceCounts.last_3000_games.ratio >= arr_rates_for_value[index])
                 appearanceCounts.last_3000_games.color = "red";
+
+            crashValues.slice(0, 15000).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_15000_games.count++;
+                }
+            });
+            appearanceCounts.last_15000_games.ratio = appearanceCounts.last_15000_games.count / 15000 * 100; // percentage
+            if (appearanceCounts.last_15000_games.ratio >= arr_rates_for_value[index])
+                appearanceCounts.last_15000_games.color = "red";
 
             crashValues.slice(0, last_n_games).forEach(val => {
                 if (val >= value) {
