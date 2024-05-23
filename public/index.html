@@ -214,7 +214,7 @@
 
             if (data.hasOwnProperty('game_ended')) {
                 analyzeGames();
-                
+
                 if (debugParam === '1') {
                     const profitStatus = data.game_ended.profit < 0 ? 'red' : (data.game_ended.crash_value > 150 ? 'yellow' : (data.game_ended.crash_value > 50 ? 'blue' : (data.game_ended.profit > 0 ? 'green' : 'grey')));
                     const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
@@ -292,7 +292,15 @@
 
             // Create the header row
             const headerRow = table.insertRow();
-            const headerValues = ['Crash Value', 'Appeared for the last time', 'Last 100 Games', 'Last 300 Games', 'Last 1000 Games', 'Last 3000 Games', 'Last 15000 Games', 'Last N Games'];
+            const headerValues = [
+                'Crash Value (Win Rate)',
+                'Appeared for the last time',
+                'Appearance in Last 100 Games',
+                'Appearance in Last 300 Games',
+                'Appearance in Last 1000 Games',
+                'Appearance in Last 3000 Games',
+                'Appearance in Last 15000 Games',
+                'Appearance in Last N Games'];
             headerValues.forEach(value => {
                 const th = document.createElement('th');
                 th.textContent = value;
@@ -316,7 +324,7 @@
                 for (const range in analysis.appearance_counts) {
                     const rangeAnalysis = analysis.appearance_counts[range];
                     const cell = row.insertCell();
-                    cell.textContent = `${rangeAnalysis.count} (${rangeAnalysis.ratio.toFixed(2)}%)`;
+                    cell.textContent = `${rangeAnalysis.count} (Avg. ${rangeAnalysis.avg_count.toFixed(2)})`;
                     if (rangeAnalysis.color === 'red') {
                         cell.classList.add('red');
                     }
