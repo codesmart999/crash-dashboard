@@ -406,8 +406,8 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         });
 
         // Array of values to analyze
-        const arr_values = [1.2, 50, 100, 150, 200, 500, 1000];
-        const arr_rates_for_value = [82.5, 1.98, 0.99, 0.66, 0.495, 0.198, 0.099];
+        const arr_values = [50, 100, 150, 200, 500, 1000, 10, 25];
+        const arr_rates_for_value = [1.98, 0.99, 0.66, 0.495, 0.198, 0.099, 9.9, 3.96];
 
         // Initialize result object
         let analysisResult = {};
@@ -425,15 +425,27 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
 
             // Initialize counters for different ranges
             const appearanceCounts = {
+                last_50_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '50'},
                 last_100_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '100'},
                 last_300_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '300'},
+                last_500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '500'},
                 last_1000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1000'},
                 last_3000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '3000'},
-                last_15000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '15000'},
+                last_10000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '10000'},
                 last_n_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: last_n_games}
             };
 
             // Count appearances within different ranges
+            crashValues.slice(0, 50).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_50_games.count++;
+                }
+            });
+            appearanceCounts.last_50_games.ratio = appearanceCounts.last_50_games.count / 50 * 100; // percentage
+            appearanceCounts.last_50_games.avg_count = arr_rates_for_value[index] * 50 / 100;
+            if (value <= 50 && appearanceCounts.last_50_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_50_games.color = "red";
+
             crashValues.slice(0, 100).forEach(val => {
                 if (val >= value) {
                     appearanceCounts.last_100_games.count++;
@@ -453,6 +465,16 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_300_games.avg_count = arr_rates_for_value[index] * 300 / 100;
             if (value <= 300 && appearanceCounts.last_300_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_300_games.color = "red";
+
+            crashValues.slice(0, 500).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_500_games.count++;
+                }
+            });
+            appearanceCounts.last_500_games.ratio = appearanceCounts.last_500_games.count / 500 * 100; // percentage
+            appearanceCounts.last_500_games.avg_count = arr_rates_for_value[index] * 500 / 100;
+            if (value <= 500 && appearanceCounts.last_500_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_500_games.color = "red";
 
             crashValues.slice(0, 1000).forEach(val => {
                 if (val >= value) {
@@ -474,15 +496,15 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 3000 && appearanceCounts.last_3000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_3000_games.color = "red";
 
-            crashValues.slice(0, 15000).forEach(val => {
+            crashValues.slice(0, 10000).forEach(val => {
                 if (val >= value) {
-                    appearanceCounts.last_15000_games.count++;
+                    appearanceCounts.last_10000_games.count++;
                 }
             });
-            appearanceCounts.last_15000_games.ratio = appearanceCounts.last_15000_games.count / 15000 * 100; // percentage
-            appearanceCounts.last_15000_games.avg_count = arr_rates_for_value[index] * 15000 / 100;
-            if (value <= 15000 && appearanceCounts.last_15000_games.ratio > arr_rates_for_value[index] + 0.02)
-                appearanceCounts.last_15000_games.color = "red";
+            appearanceCounts.last_10000_games.ratio = appearanceCounts.last_10000_games.count / 10000 * 100; // percentage
+            appearanceCounts.last_10000_games.avg_count = arr_rates_for_value[index] * 10000 / 100;
+            if (value <= 10000 && appearanceCounts.last_10000_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_10000_games.color = "red";
 
             crashValues.slice(0, last_n_games).forEach(val => {
                 if (val >= value) {
