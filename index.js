@@ -406,8 +406,8 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         });
 
         // Array of values to analyze
-        const arr_values = [50, 100, 150, 200, 500, 1000, 10, 25];
-        const arr_rates_for_value = [1.98, 0.99, 0.66, 0.495, 0.198, 0.099, 9.9, 3.96];
+        const arr_values = [50, 100, 150, 300, 500, 1000, 10, 25];
+        const arr_rates_for_value = [1.98, 0.99, 0.33, 0.495, 0.198, 0.099, 9.9, 3.96];
 
         // Initialize result object
         let analysisResult = {};
@@ -427,6 +427,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             const appearanceCounts = {
                 last_50_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '50', hidden: false},
                 last_100_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '100', hidden: false},
+                last_150_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '150', hidden: false},
                 last_300_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '300', hidden: false},
                 last_500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '500', hidden: false},
                 last_1000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1000', hidden: false},
@@ -459,6 +460,18 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 appearanceCounts.last_100_games.color = "red";
             else if (value > 100)
                 appearanceCounts.last_100_games.hidden = true;
+
+            crashValues.slice(0, 150).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_150_games.count++;
+                }
+            });
+            appearanceCounts.last_150_games.ratio = appearanceCounts.last_150_games.count / 150 * 100; // percentage
+            appearanceCounts.last_150_games.avg_count = arr_rates_for_value[index] * 150 / 100;
+            if (value <= 150 && appearanceCounts.last_150_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_150_games.color = "red";
+            else if (value > 150)
+                appearanceCounts.last_150_games.hidden = true;
 
             crashValues.slice(0, 300).forEach(val => {
                 if (val >= value) {
@@ -548,8 +561,19 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
         //         [key]: analysisResult[key]
         //     }), {});
 
+        const sortedAnalysisResult = [];
+
+        // Loop through arr_values to maintain the desired order
+        arr_values.forEach(value => {
+            // Check if the value exists in analysisResult
+            if (analysisResult[value]) {
+                // Add the value and its corresponding analysis result to sortedAnalysisResult
+                sortedAnalysisResult.push({ value, result: analysisResult[value] });
+            }
+        });
+
         // Send the analysis result as a response
-        res.status(200).json(analysisResult);
+        res.status(200).json(sortedAnalysisResult);
     });
 });
 

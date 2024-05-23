@@ -224,7 +224,7 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        function displayAnalysisResult(result) {
+        function displayAnalysisResult(arrResult) {
             const analysisResultDiv = document.getElementById('analysisResult');
             analysisResultDiv.innerHTML = '';
 
@@ -234,16 +234,17 @@
             // Create the header row
             const headerRow = table.insertRow();
             const headerValues = [
-                'Value (Rate)',
-                'When?',
-                'Last 50',
-                'Last 100',
-                'Last 300',
-                'Last 500',
-                'Last 1000',
-                'Last 3000',
-                'Last 10000',
-                'Last N'];
+                'V',
+                '?',
+                '50',
+                '100',
+                '150',
+                '300',
+                '500',
+                '1000',
+                '3000',
+                '10000',
+                'N'];
             headerValues.forEach(value => {
                 const th = document.createElement('th');
                 th.textContent = value;
@@ -251,13 +252,13 @@
             });
 
             // Create a row for each crash value
-            for (const value in result) {
-                const analysis = result[value];
+            arrResult.forEach((objResult) => {
+                const analysis = objResult.result;
                 const row = table.insertRow();
 
                 // Add the crash value
                 const valueCell = row.insertCell();
-                valueCell.textContent = ">= " + value + " (" + analysis.expected_rate + "%)";
+                valueCell.textContent = objResult.value;
 
                 // Add the games ago information
                 const gamesAgoCell = row.insertCell();
@@ -272,7 +273,7 @@
                         cell.classList.add('red');
                     }
                 }
-            }
+            });
 
             analysisResultDiv.appendChild(table);
         }
