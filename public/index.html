@@ -268,7 +268,7 @@
                 for (const range in analysis.appearance_counts) {
                     const rangeAnalysis = analysis.appearance_counts[range];
                     const cell = row.insertCell();
-                    cell.textContent = !rangeAnalysis.hidden ? `${rangeAnalysis.count} (${rangeAnalysis.avg_count.toFixed(2)})` : '';
+                    cell.textContent = !rangeAnalysis.hidden ? `${rangeAnalysis.count} (${Math.round(rangeAnalysis.avg_count)})` : '';
                     if (rangeAnalysis.color === 'red') {
                         cell.classList.add('red');
                     }
