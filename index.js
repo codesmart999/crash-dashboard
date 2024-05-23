@@ -407,7 +407,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
 
         // Array of values to analyze
         const arr_values = [50, 100, 150, 300, 500, 1000, 10, 25];
-        const arr_rates_for_value = [1.98, 0.99, 0.33, 0.495, 0.198, 0.099, 9.9, 3.96];
+        const arr_rates_for_value = [1.98, 0.99, 0.66, 0.33, 0.198, 0.099, 9.9, 3.96];
 
         // Initialize result object
         let analysisResult = {};
