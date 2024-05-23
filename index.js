@@ -81,7 +81,8 @@ app.get('/api/import_csv', (req, res) => {
                     const lines = content.trim().split('\n');
                     lines.forEach(line => {
                         const [game_info, crash_value] = line.split(',');
-                        const [_, game_id] = game_info.split(' ');
+                        const [game_info_part1, game_info_part2] = game_info.split(' ');
+                        const game_id = !game_info_part2 ? game_info_part1 : game_info_part2;
                         
                         const selectSql = 'SELECT * FROM games WHERE game_id = ?';
                         db.get(selectSql, [game_id], (err, row) => {
@@ -148,13 +149,14 @@ app.get('/api/clean_data', (req, res) => {
 });
 
 // API to serve data to frontend
-app.get('/api/data', (req, res) => {
-    const sql = 'SELECT * FROM games ORDER BY game_id ASC'; // Modify the query as needed
-    db.all(sql, (err, rows) => {
+app.get('/api/data/:last_n_games?', (req, res) => {
+    let last_n_games = req.params.last_n_games || 30000;
+    const sql = 'SELECT * FROM games ORDER BY game_id DESC LIMIT ?'; // Modify the query as needed
+    db.all(sql, [parseInt(last_n_games)], (err, rows) => {
         if (err) {
             res.status(500).json({ message: 'Error fetching data', error: err });
         } else {
-            res.json(rows);
+            res.json(rows.reverse());
         }
     });
 });
@@ -470,7 +472,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_150_games.avg_count = arr_rates_for_value[index] * 150 / 100;
             if (value <= 150 && appearanceCounts.last_150_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_150_games.color = "red";
-            if (value > 150)
+            if (value > 150 || value == 100)
                 appearanceCounts.last_150_games.hidden = true;
 
             crashValues.slice(0, 300).forEach(val => {

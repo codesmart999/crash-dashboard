@@ -269,9 +269,13 @@
                 for (const range in analysis.appearance_counts) {
                     const rangeAnalysis = analysis.appearance_counts[range];
                     const cell = row.insertCell();
-                    cell.textContent = !rangeAnalysis.hidden ? `${Math.round(rangeAnalysis.count / rangeAnalysis.avg_count * 100) / 100}` : '';
-                    if (rangeAnalysis.color === 'red') {
-                        cell.classList.add('red');
+                    if (!rangeAnalysis.hidden) {
+                        cell.textContent = `${Math.round(rangeAnalysis.count / rangeAnalysis.avg_count * 100) / 100}`;
+                        if (rangeAnalysis.color === 'red') {
+                            cell.classList.add('red');
+                        }
+                    } else {
+                        cell.textContent = '';
                     }
                 }
             });
