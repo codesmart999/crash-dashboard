@@ -77,13 +77,13 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title">Analyze</h5>
+                        <h5 class="card-title">Data</h5>
                     </div>
                     <div class="card-body">
                         <div>
                             <label for="lastNGames">Last N:</label>
                             <input type="number" id="lastNGames" name="lastNGames" min="1" value="30000">
-                            <button onclick="analyzeGames()">Analyze</button>
+                            <button onclick="analyzeGames()">Submit</button>
                         </div>
                         <div id="analysisResult">
                             <!-- Analysis result will be displayed here -->
@@ -99,7 +99,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title">Log Panel (<a href="#" id="loadAllGames">Load All</a>)</h5>
+                        <h5 class="card-title">Log (<a href="#" id="loadAllGames">Load All</a>)</h5>
                     </div>
                     <div class="card-body">
                         <ul id="logPanel" class="list-group"></ul>
@@ -210,7 +210,8 @@
             const timeToShow = reported_at ? new Date(reported_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
             // Prepend current time to the log message
-            li.innerHTML = `<span class="fw-bold">${timeToShow}</span> ${message}`;
+            // li.innerHTML = `<span class="fw-bold">${timeToShow}</span> ${message}`;
+            li.innerHTML = `${message}`;
             
             // Insert the new log entry at the beginning of the list
             logPanel.insertBefore(li, logPanel.firstChild);
@@ -268,7 +269,7 @@
                 for (const range in analysis.appearance_counts) {
                     const rangeAnalysis = analysis.appearance_counts[range];
                     const cell = row.insertCell();
-                    cell.textContent = !rangeAnalysis.hidden ? `${rangeAnalysis.count} (${Math.round(rangeAnalysis.avg_count)})` : '';
+                    cell.textContent = !rangeAnalysis.hidden ? `${Math.round(rangeAnalysis.count / rangeAnalysis.avg_count * 100) / 100}` : '';
                     if (rangeAnalysis.color === 'red') {
                         cell.classList.add('red');
                     }
