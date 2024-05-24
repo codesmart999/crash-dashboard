@@ -427,16 +427,16 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
 
             // Initialize counters for different ranges
             const appearanceCounts = {
-                last_50_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '50', hidden: false},
-                last_100_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '100', hidden: false},
-                last_150_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '150', hidden: false},
-                last_300_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '300', hidden: false},
-                last_500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '500', hidden: false},
-                last_1000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1000', hidden: false},
-                last_1500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1500', hidden: false},
-                last_3000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '3000', hidden: false},
-                last_10000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '10000', hidden: false},
-                last_n_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: last_n_games, hidden: false}
+                last_50_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '50', display: 'show'},
+                last_100_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '100', display: 'show'},
+                last_150_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '150', display: 'show'},
+                last_300_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '300', display: 'show'},
+                last_500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '500', display: 'show'},
+                last_1000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1000', display: 'show'},
+                last_1500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1500', display: 'show'},
+                last_3000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '3000', display: 'show'},
+                last_10000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '10000', display: 'show'},
+                last_n_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: last_n_games, display: 'show'}
             };
 
             // Count appearances within different ranges
@@ -450,7 +450,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 50 && appearanceCounts.last_50_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_50_games.color = "red";
             if (value > 50)
-                appearanceCounts.last_50_games.hidden = true;
+                appearanceCounts.last_50_games.display = 'hide';
 
             crashValues.slice(0, 100).forEach(val => {
                 if (val >= value) {
@@ -462,7 +462,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 100 && appearanceCounts.last_100_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_100_games.color = "red";
             if (value > 100)
-                appearanceCounts.last_100_games.hidden = true;
+                appearanceCounts.last_100_games.display = 'hide';
 
             crashValues.slice(0, 150).forEach(val => {
                 if (val >= value) {
@@ -474,7 +474,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 150 && appearanceCounts.last_150_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_150_games.color = "red";
             if (value > 150 || value == 100)
-                appearanceCounts.last_150_games.hidden = true;
+                appearanceCounts.last_150_games.display = 'hide';
 
             crashValues.slice(0, 300).forEach(val => {
                 if (val >= value) {
@@ -486,7 +486,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 300 && appearanceCounts.last_300_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_300_games.color = "red";
             if (value > 300 || value <= 10)
-                appearanceCounts.last_300_games.hidden = true;
+                appearanceCounts.last_300_games.display = 'hide';
 
             crashValues.slice(0, 500).forEach(val => {
                 if (val >= value) {
@@ -498,7 +498,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 500 && appearanceCounts.last_500_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_500_games.color = "red";
             if (value > 500 || value <= 25)
-                appearanceCounts.last_500_games.hidden = true;
+                appearanceCounts.last_500_games.display = 'hide';
 
             crashValues.slice(0, 1000).forEach(val => {
                 if (val >= value) {
@@ -510,7 +510,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 1000 && appearanceCounts.last_1000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1000_games.color = "red";
             if (value > 1000 || value <= 50)
-                appearanceCounts.last_1000_games.hidden = true;
+                appearanceCounts.last_1000_games.display = 'hide';
 
             crashValues.slice(0, 1500).forEach(val => {
                 if (val >= value) {
@@ -521,8 +521,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_1500_games.avg_count = arr_rates_for_value[index] * 1500 / 100;
             if (value <= 1500 && appearanceCounts.last_1500_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1500_games.color = "red";
-            if (value > 1500 || value <= 100)
-                appearanceCounts.last_1500_games.hidden = true;
+            if (value > 1500 || value <= 100) {
+                if (value > 1500 || value <= 25)
+                    appearanceCounts.last_1500_games.display = 'hide';
+                else
+                    appearanceCounts.last_1500_games.display = 'half';
+            }
 
             crashValues.slice(0, 3000).forEach(val => {
                 if (val >= value) {
@@ -533,8 +537,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_3000_games.avg_count = arr_rates_for_value[index] * 3000 / 100;
             if (value <= 3000 && appearanceCounts.last_3000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_3000_games.color = "red";
-            if (value > 3000 || value <= 25)
-                appearanceCounts.last_3000_games.hidden = true;
+            if (value > 3000 || value <= 150) {
+                if (value > 3000 || value <= 25)
+                    appearanceCounts.last_3000_games.display = 'hide';
+                else
+                    appearanceCounts.last_3000_games.display = 'half';
+            }
 
             crashValues.slice(0, 10000).forEach(val => {
                 if (val >= value) {
@@ -545,8 +553,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_10000_games.avg_count = arr_rates_for_value[index] * 10000 / 100;
             if (value <= 10000 && appearanceCounts.last_10000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_10000_games.color = "red";
-            if (value > 10000 || value <= 25)
-                appearanceCounts.last_10000_games.hidden = true;
+            if (value > 10000 || value <= 300) {
+                if (value > 10000 || value <= 50)
+                    appearanceCounts.last_10000_games.display = 'hide';
+                else
+                    appearanceCounts.last_10000_games.display = 'half';
+            }
 
             crashValues.slice(0, last_n_games).forEach(val => {
                 if (val >= value) {
@@ -558,7 +570,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= last_n_games && appearanceCounts.last_n_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_n_games.color = "red";
             if (value > last_n_games || value <= 25)
-                appearanceCounts.last_n_games.hidden = true;
+                appearanceCounts.last_n_games.display = 'hide';
 
             // Add analysis results to the result object
             analysisResult[value] = {
