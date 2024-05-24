@@ -430,10 +430,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 last_50_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '50', display: 'show'},
                 last_100_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '100', display: 'show'},
                 last_150_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '150', display: 'show'},
+                last_200_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '150', display: 'show'},
                 last_300_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '300', display: 'show'},
                 last_500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '500', display: 'show'},
                 last_1000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1000', display: 'show'},
                 last_1500_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '1500', display: 'show'},
+                last_2000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '2000', display: 'show'},
                 last_3000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '3000', display: 'show'},
                 last_10000_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: '10000', display: 'show'},
                 last_n_games: {count: 0, ratio: 0, avg_count: 0, color: 'green', games: last_n_games, display: 'show'}
