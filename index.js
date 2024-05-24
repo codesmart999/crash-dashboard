@@ -488,7 +488,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 200 && appearanceCounts.last_200_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_200_games.color = "red";
             if (value > 200 || value <= 10)
-                appearanceCounts.last_300_games.display = 'hide';
+                appearanceCounts.last_200_games.display = 'hide';
 
             crashValues.slice(0, 300).forEach(val => {
                 if (val >= value) {
