@@ -509,8 +509,12 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_1000_games.avg_count = arr_rates_for_value[index] * 1000 / 100;
             if (value <= 1000 && appearanceCounts.last_1000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1000_games.color = "red";
-            if (value > 1000 || value <= 50)
-                appearanceCounts.last_1000_games.display = 'hide';
+            if (value > 1000 || value <= 50) {
+                if (value > 1000 || value <= 25)
+                    appearanceCounts.last_1000_games.display = 'hide';
+                else
+                    appearanceCounts.last_1000_games.display = 'half';
+            }
 
             crashValues.slice(0, 1500).forEach(val => {
                 if (val >= value) {
@@ -554,7 +558,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 10000 && appearanceCounts.last_10000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_10000_games.color = "red";
             if (value > 10000 || value <= 300) {
-                if (value > 10000 || value <= 50)
+                if (value > 10000 || value <= 25)
                     appearanceCounts.last_10000_games.display = 'hide';
                 else
                     appearanceCounts.last_10000_games.display = 'half';
