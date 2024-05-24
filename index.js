@@ -476,6 +476,18 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value > 150 || value == 100)
                 appearanceCounts.last_150_games.display = 'hide';
 
+            crashValues.slice(0, 200).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_200_games.count++;
+                }
+            });
+            appearanceCounts.last_200_games.ratio = appearanceCounts.last_200_games.count / 200 * 100; // percentage
+            appearanceCounts.last_200_games.avg_count = arr_rates_for_value[index] * 200 / 100;
+            if (value <= 200 && appearanceCounts.last_200_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_200_games.color = "red";
+            if (value > 200 || value <= 10)
+                appearanceCounts.last_300_games.display = 'hide';
+
             crashValues.slice(0, 300).forEach(val => {
                 if (val >= value) {
                     appearanceCounts.last_300_games.count++;
@@ -530,6 +542,22 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                     appearanceCounts.last_1500_games.display = 'hide';
                 else
                     appearanceCounts.last_1500_games.display = 'half';
+            }
+
+            crashValues.slice(0, 2000).forEach(val => {
+                if (val >= value) {
+                    appearanceCounts.last_2000_games.count++;
+                }
+            });
+            appearanceCounts.last_2000_games.ratio = appearanceCounts.last_2000_games.count / 2000 * 100; // percentage
+            appearanceCounts.last_2000_games.avg_count = arr_rates_for_value[index] * 2000 / 100;
+            if (value <= 2000 && appearanceCounts.last_2000_games.ratio > arr_rates_for_value[index] + 0.02)
+                appearanceCounts.last_2000_games.color = "red";
+            if (value > 2000 || value <= 100) {
+                if (value > 2000 || value <= 25)
+                    appearanceCounts.last_2000_games.display = 'hide';
+                else
+                    appearanceCounts.last_2000_games.display = 'half';
             }
 
             crashValues.slice(0, 3000).forEach(val => {
