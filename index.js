@@ -489,6 +489,8 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 appearanceCounts.last_200_games.color = "red";
             if (value > 200 || value <= 10)
                 appearanceCounts.last_200_games.display = 'hide';
+            if (value == 150)
+                appearanceCounts.last_200_games.display = 'half';
 
             crashValues.slice(0, 300).forEach(val => {
                 if (val >= value) {
@@ -545,6 +547,8 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
                 else
                     appearanceCounts.last_1500_games.display = 'half';
             }
+            if (value == 1000)
+                appearanceCounts.last_1500_games.display = 'half';
 
             crashValues.slice(0, 2000).forEach(val => {
                 if (val >= value) {
