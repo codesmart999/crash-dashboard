@@ -504,7 +504,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value > 300)
                 appearanceCounts.last_300_games.display = 'hide';
             if (value <= 10)
-                appearanceCounts.last_200_games.display = 'half';
+                appearanceCounts.last_300_games.display = 'half';
 
             crashValues.slice(0, 500).forEach(val => {
                 if (val >= value) {
