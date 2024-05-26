@@ -487,9 +487,9 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_200_games.avg_count = arr_rates_for_value[index] * 200 / 100;
             if (value <= 200 && appearanceCounts.last_200_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_200_games.color = "red";
-            if (value > 200 || value <= 10)
+            if (value > 200)
                 appearanceCounts.last_200_games.display = 'hide';
-            if (value == 150)
+            if (value == 150 || value <= 10)
                 appearanceCounts.last_200_games.display = 'half';
 
             crashValues.slice(0, 300).forEach(val => {
@@ -501,8 +501,10 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_300_games.avg_count = arr_rates_for_value[index] * 300 / 100;
             if (value <= 300 && appearanceCounts.last_300_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_300_games.color = "red";
-            if (value > 300 || value <= 10)
+            if (value > 300)
                 appearanceCounts.last_300_games.display = 'hide';
+            if (value <= 10)
+                appearanceCounts.last_200_games.display = 'half';
 
             crashValues.slice(0, 500).forEach(val => {
                 if (val >= value) {
@@ -513,8 +515,10 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             appearanceCounts.last_500_games.avg_count = arr_rates_for_value[index] * 500 / 100;
             if (value <= 500 && appearanceCounts.last_500_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_500_games.color = "red";
-            if (value > 500 || value <= 25)
+            if (value > 500)
                 appearanceCounts.last_500_games.display = 'hide';
+            if (value <= 25)
+                appearanceCounts.last_500_games.display = 'half';
 
             crashValues.slice(0, 1000).forEach(val => {
                 if (val >= value) {
@@ -526,7 +530,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 1000 && appearanceCounts.last_1000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1000_games.color = "red";
             if (value > 1000 || value <= 50) {
-                if (value > 1000 || value <= 25)
+                if (value > 1000)
                     appearanceCounts.last_1000_games.display = 'hide';
                 else
                     appearanceCounts.last_1000_games.display = 'half';
@@ -542,7 +546,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 1500 && appearanceCounts.last_1500_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_1500_games.color = "red";
             if (value > 1500 || value <= 100) {
-                if (value > 1500 || value <= 25)
+                if (value > 1500)
                     appearanceCounts.last_1500_games.display = 'hide';
                 else
                     appearanceCounts.last_1500_games.display = 'half';
@@ -560,7 +564,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 2000 && appearanceCounts.last_2000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_2000_games.color = "red";
             if (value > 2000 || value <= 100) {
-                if (value > 2000 || value <= 25)
+                if (value > 2000)
                     appearanceCounts.last_2000_games.display = 'hide';
                 else
                     appearanceCounts.last_2000_games.display = 'half';
@@ -576,7 +580,7 @@ app.get('/api/analyze/:last_n_games?', (req, res) => {
             if (value <= 3000 && appearanceCounts.last_3000_games.ratio > arr_rates_for_value[index] + 0.02)
                 appearanceCounts.last_3000_games.color = "red";
             if (value > 3000 || value <= 150) {
-                if (value > 3000 || value <= 25)
+                if (value > 3000)
                     appearanceCounts.last_3000_games.display = 'hide';
                 else
                     appearanceCounts.last_3000_games.display = 'half';
