@@ -3,257 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bust Data Viewer</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        .circle-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .circle {
-            display: inline-block;
+        .status-circle {
             width: 20px;
             height: 20px;
             border-radius: 50%;
+            display: inline-block;
             margin-right: 5px;
         }
-        .red {
-            background-color: red;
-        }
-        .blue {
+        .status-blue {
             background-color: blue;
         }
-        .green {
-            background-color: green;
+        .status-green {
+            background-color: #28a745;
         }
-        .big {
-            width: 50px;
-            height: 50px;
+        .status-red {
+            background-color: #dc3545;
         }
-        .bigbig {
-            width: 100px;
-            height: 100px;
+        .status-grey {
+            background-color: #999999;
         }
-        .yellow {
+        .status-yellow {
             background-color: yellow;
-            width: 100px;
-            height: 100px;
+        }
+        .list-blue {
+            border-left: 5px solid blue; /* Red border */
+        }
+        .list-red {
+            border-left: 5px solid #dc3545; /* Red border */
+        }
+        .list-green {
+            border-left: 5px solid #28a745; /* Green border */
+        }
+        .list-grey {
+            border-left: 5px solid #999999; /* Grey border */
+        }
+        .list-yellow {
+            border-left: 5px solid yellow;
+        }
+        .fixed-top {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #fff;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .red {
+            color: red;
+        }
+        .half-display {
+            opacity: 0.2;
         }
     </style>
 </head>
 <body>
-    <div id="inputContainer">
-        <label for="originalBalanceInput">Original Balance:</label>
-        <input type="number" id="originalBalanceInput" value="" min="0"><br>
-
-        <label for="betAmountInput">Bet Amount:</label>
-        <input type="number" id="betAmountInput" value="" min="0"><br>
-
-        <label for="payoutInput">Payout:</label>
-        <input type="number" id="payoutInput" value="" min="0"><br>
-
-        <label for="maximumPayoutInput">Maximum Payout:</label>
-        <input type="number" id="maximumPayoutInput" value="" min="0"><br>
-
-        <hr/>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <label for="lastNGames">Last N:</label>
+                            <input type="number" id="lastNGames" name="lastNGames" min="1" value="30000">
+                            <button onclick="analyzeGames()">Submit</button>
+                        </div>
+                        <div id="analysisResult">
+                            <!-- Analysis result will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="dataContainer"></div>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Log (<a href="#" id="loadAllGames">Load All</a>)</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul id="logPanel" class="list-group"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <!-- WebSocket script -->
     <script>
-        let nGames = 0;
+        const ws = new WebSocket('ws://localhost:8000');
 
-        let betConfig = {
-            betAmount: 1,
-            payout: 1.2,
-            maximumPayout: 1920,
-            originalBalance: 0,
-            debug: false
+        const loadAllGamesButton = document.getElementById('loadAllGames'); // Assuming you have an ID for the button
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugParam = urlParams.get('debug');
+
+        if (debugParam !== '1') {
+            const debugElements = document.querySelectorAll('.debug');
+            debugElements.forEach(element => {
+                element.style.display = 'none';
+            });
+        }
+        
+        loadAllGamesButton.addEventListener('click', () => {
+            fetch('/api/load_all_games')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch data');
+                    }
+                    return response.json();
+                })
+                .then(arrGameInfo => {
+                    cleanLogPanel(); // Clean the Log Panel
+                    
+                    arrGameInfo.forEach((objGameInfo) => {
+                        const profitStatus = objGameInfo.crash_value < 50 ? 'grey' : (objGameInfo.crash_value > 150 ? 'yellow' : 'blue');
+                        const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                        updateLogPanel(`${profitCircle} ${objGameInfo.game_id}: ${objGameInfo.crash_value}`, profitStatus, objGameInfo.converted_reported_at);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading all games:', error);
+                });
+        });
+
+        ws.onopen = () => {
+            console.log('WebSocket connection established.');
         };
 
-        let originalBalance = betConfig.originalBalance;
-        let runningBalance = betConfig.originalBalance;
-        let currentPayout = betConfig.payout;
-        let payoutIncrease = betConfig.payout;
-        let currentBetAmount = betConfig.betAmount;
-        let lowestBalance = betConfig.originalBalance;
-        let highestBalance = 0;
-        let nMaximumLoss = 0;
-        let nCurrentLoss = 0;
-        let nLossGames = 0;
-        let nMaximumLossGames = 0;
-        let nGoldGames = 0;
-        let nPrevGoldGameIndex = 0;
-        let nMaxGoldGameGap = 0;
-        let nGoldGameGap = 0;
-        
-        function updatebetConfig(event) {
-            if (!!event) {
-                betConfig.betAmount = parseFloat(document.getElementById('betAmountInput').value);
-                betConfig.originalBalance = parseFloat(document.getElementById('originalBalanceInput').value);
-                betConfig.payout = parseFloat(document.getElementById('payoutInput').value);
-                betConfig.maximumPayout = parseFloat(document.getElementById('maximumPayoutInput').value);
-            } else {
-                // Example 2: Setting input values from betConfig object properties
-                document.getElementById('betAmountInput').value = betConfig.betAmount;
-                document.getElementById('originalBalanceInput').value = betConfig.originalBalance;
-                document.getElementById('payoutInput').value = betConfig.payout;
-                document.getElementById('maximumPayoutInput').value = betConfig.maximumPayout;
-            }
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received data from server:', data);
 
-            displayData();
-        }
-
-        async function fetchData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const limitParam = urlParams.get('limit') || 30000;
-
-            const response = await fetch('/api/data/' + limitParam);
-            const data = await response.json();
-            return data;
-        }
-
-        function createCircle(crash_value, game_id) {
-            const circle = document.createElement('div');
-            circle.classList.add('circle');
-
-            if (crash_value >= betConfig.maximumPayout) {
-                if (nPrevGoldGameIndex) {
-                    nGoldGameGap = nGames - nPrevGoldGameIndex;
-                }
-
-                if (nGoldGameGap > nMaxGoldGameGap)
-                    nMaxGoldGameGap = nGoldGameGap;
+            if (data.hasOwnProperty('game_ended')) {
+                analyzeGames();
                 
-                nGoldGames++;
-                nPrevGoldGameIndex = nGames;
+                const profitStatus = data.game_ended.crash_value < 50 ? 'grey' : (data.game_ended.crash_value > 150 ? 'yellow' : 'blue');
+                const profitCircle = `<span class="status-circle status-${profitStatus}"></span>`;
+                updateLogPanel(`${profitCircle} ${data.game_ended.game_id}: ${data.game_ended.crash_value}`, profitStatus);
             }
-            
-            if (crash_value >= currentPayout) {
-                circle.classList.add('green');
-                if (crash_value >= 500) {
-                    circle.classList.add('big');
-                }
-            } else {
-                if (crash_value >= 500) {
-                    circle.classList.add('blue');
-                    circle.classList.add('big');
-                } else
-                    circle.classList.add('red');
+        };
 
-                // if (crash_value >= currentPayout - 100 && currentPayout > 200)
-                //     circle.classList.add('big')
-                // else if (crash_value >= currentPayout - 200 && currentPayout > 300)
-                //     circle.classList.add('bigbig')
-            }
-
-            if (crash_value >= currentPayout) {
-                runningBalance += currentBetAmount * (currentPayout - 1);
-                if (betConfig.debug)
-                    console.log(game_id, 'Win - runningBalance', runningBalance);
-                currentPayout = betConfig.payout;
-                payoutIncrease = betConfig.payout;
-                currentBetAmount = betConfig.betAmount;
-                nCurrentLoss = 0;
-                nLossGames = 0;
-            } else {
-                runningBalance -= currentBetAmount;
-                if (betConfig.debug)
-                    console.error(game_id, 'LOSS - runningBalance', runningBalance)
-
-                nCurrentLoss += currentBetAmount;
-                nLossGames++;
-                if (nCurrentLoss > nMaximumLoss)
-                    nMaximumLoss = nCurrentLoss;
-                if (nLossGames > nMaximumLossGames)
-                    nMaximumLossGames = nLossGames;
-
-                if (currentPayout + payoutIncrease > betConfig.maximumPayout) {
-                    payoutIncrease = (payoutIncrease - 1) / 2 + 1; // 1.25 -> 1.125 -> 1.0625
-                    currentPayout = currentPayout / 2 + payoutIncrease;
-                    currentBetAmount *= 2;
-                } else {
-                    currentPayout += payoutIncrease;
-                }
-            }
-
-            if (runningBalance < lowestBalance)
-                lowestBalance = runningBalance;
-            
-            if (runningBalance > highestBalance)
-                highestBalance = runningBalance;
-
-            return circle;
+        // Function to clean the Log Panel
+        function cleanLogPanel() {
+            const logPanel = document.getElementById('logPanel'); // Assuming logPanel is the ID of the Log Panel
+            logPanel.innerHTML = ''; // Empty the Log Panel
         }
 
-        async function displayData() {
-            const data = await fetchData();
-            const container = document.getElementById('dataContainer');
-            container.innerHTML = ''; // Clear previous data
+        function updateScriptStatus(scriptStatus) {
+            const scriptStatusCircle = document.getElementById('scriptStatusCircle');
+            const scriptStatusText = document.getElementById('scriptStatusText');
 
-            nGames = 0;
+            if (scriptStatus.isRunning) {
+                // Script is running (green circle)
+                scriptStatusCircle.classList.remove('status-red');
+                scriptStatusCircle.classList.add('status-green');
+                scriptStatusText.textContent = 'Running';
+            } else {
+                // Script is not running (red circle)
+                scriptStatusCircle.classList.remove('status-green');
+                scriptStatusCircle.classList.add('status-red');
+                scriptStatusText.textContent = `${scriptStatus.errorMessage}`;
+            }
+        }
+
+        function updateBalance(newBalance) {
+            const balanceElement = document.getElementById('balance');
+            // Set arrow icon based on balance difference
+            let arrowIconClass = 'fa-dollar text-success'; // Upward green arrow
+            // Update balance with arrow icon
+            balanceElement.innerHTML = `<i class="fas ${arrowIconClass}"></i> ${newBalance}`;
+        }
+
+        // Function to update the log panel
+        function updateLogPanel(message, status, reported_at = '') {
+            const logPanel = document.getElementById('logPanel');
+            const li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.classList.add(`list-${status}`);
+
+            // Get current time in hh:mm format or use reported_at if provided
+            const timeToShow = reported_at ? new Date(reported_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            // Prepend current time to the log message
+            // li.innerHTML = `<span class="fw-bold">${timeToShow}</span> ${message}`;
+            li.innerHTML = `${message}`;
             
-            currentBetAmount = betConfig.betAmount;
-            currentPayout = betConfig.payout;
-            payoutIncrease = betConfig.payout;
-            runningBalance = betConfig.originalBalance;
-            lowestBalance = betConfig.originalBalance;
-            highestBalance = 0;
-            nCurrentLoss = 0;
-            nMaximumLoss = 0;
-            nLossGames = 0;
-            nMaximumLossGames = 0;
-            nGoldGames = 0;
-            nPrevGoldGameIndex = 0;
-            nMaxGoldGameGap = 0;
+            // Insert the new log entry at the beginning of the list
+            logPanel.insertBefore(li, logPanel.firstChild);
+        }
 
-            console.log('data', data.length);
+        function analyzeGames() {
+            const lastNGames = document.getElementById('lastNGames').value;
+            fetch(`/api/analyze/${lastNGames}`)
+                .then(response => response.json())
+                .then(data => displayAnalysisResult(data))
+                .catch(error => console.error('Error:', error));
+        }
 
-            data.forEach(({game_id, crash_value}) => {
-                if (!crash_value) return;
+        function displayAnalysisResult(arrResult) {
+            const analysisResultDiv = document.getElementById('analysisResult');
+            analysisResultDiv.innerHTML = '';
 
-                const containerDiv = document.createElement('div');
-                containerDiv.classList.add('circle-container');
+            // Create a table for displaying the analysis result
+            const table = document.createElement('table');
 
-                const gameIdElement = document.createElement('span');
-                gameIdElement.textContent = game_id;
-                containerDiv.appendChild(gameIdElement);
-
-                const bustValueElement = document.createElement('span');
-                bustValueElement.textContent = " - Busted At: " + crash_value + ", Bet At: " + currentPayout.toFixed(4) + " (" + currentBetAmount + ")";
-                containerDiv.appendChild(bustValueElement);
-
-                const circle = createCircle(crash_value, game_id);
-                containerDiv.appendChild(circle);
-
-                const balanceElement = document.createElement('span');
-                balanceElement.textContent = "Balance: " + runningBalance.toFixed(4) + ", Cont Loss: " + nCurrentLoss + ", Contd Loss Games - " + nLossGames;
-                containerDiv.appendChild(balanceElement);
-
-                container.appendChild(containerDiv);
-                nGames++;
+            // Create the header row
+            const headerRow = table.insertRow();
+            const headerValues = [
+                'V',
+                '?',
+                '50',
+                '100',
+                '150',
+                '200',
+                '300',
+                '500',
+                '1000',
+                '1500',
+                '2000',
+                '3000',
+                '10000',
+                'N'];
+            headerValues.forEach(value => {
+                const th = document.createElement('th');
+                th.textContent = value;
+                headerRow.appendChild(th);
             });
 
-            console.log('Number of Total Games', nGames);
-            console.log('Lowest Balance', lowestBalance);
-            console.log('Highest Balance', highestBalance);
-            console.log('Remaining Balance', runningBalance);
-            // console.log('Net Profit', runningBalance - originalBalance);
-            console.log('Maximum Loss', nMaximumLoss);
-            console.log('Maximum Continuous Loss Games', nMaximumLossGames);
-            console.log('Gold Games', nGoldGames);
-            console.log('Max Gold Game Gap', nMaxGoldGameGap);
+            // Create a row for each crash value
+            arrResult.forEach((objResult) => {
+                const analysis = objResult.result;
+                const row = table.insertRow();
+
+                // Add the crash value
+                const valueCell = row.insertCell();
+                valueCell.textContent = objResult.value;
+
+                // Add the games ago information
+                const gamesAgoCell = row.insertCell();
+                gamesAgoCell.textContent = analysis.games_ago;
+
+                // Add the analysis information
+                for (const range in analysis.appearance_counts) {
+                    const rangeAnalysis = analysis.appearance_counts[range];
+                    const cell = row.insertCell();
+                    if (rangeAnalysis.display != "hide") {
+                        cell.textContent = `${Math.round(rangeAnalysis.count / rangeAnalysis.avg_count * 100) / 100}`;
+                        if (rangeAnalysis.color === 'red') {
+                            cell.classList.add('red');
+                        }
+                        if (rangeAnalysis.display === 'half') {
+                            cell.classList.add('half-display');
+                        }
+                    } else {
+                        cell.textContent = '';
+                    }
+                }
+            });
+
+            analysisResultDiv.appendChild(table);
         }
-
-        // Add event listeners to input boxes
-        document.getElementById('betAmountInput').addEventListener('input', updatebetConfig);
-        document.getElementById('originalBalanceInput').addEventListener('input', updatebetConfig);
-        document.getElementById('payoutInput').addEventListener('input', updatebetConfig);
-        document.getElementById('maximumPayoutInput').addEventListener('input', updatebetConfig);
-
-        // Display initial data
-        updatebetConfig();
     </script>
 </body>
 </html>

@@ -106,16 +106,18 @@ app.get('/api/import_csv', (req, res) => {
 });
 
 // API to export data as CSV
-app.get('/api/export_csv', (req, res) => {
-    const sql = 'SELECT * FROM games ORDER BY game_id ASC'; // Modify the query as needed
-    db.all(sql, (err, rows) => {
+app.get('/api/export_csv/:last_n_games?', (req, res) => {
+    let last_n_games = req.params.last_n_games || 3000;
+    
+    const sql = 'SELECT * FROM games ORDER BY game_id DESC LIMIT ?'; // Modify the query as needed
+    db.all(sql, [parseInt(last_n_games)], (err, rows) => {
         if (err) {
             res.status(500).json({ message: 'Error fetching data', error: err });
             return;
         }
 
         // Format data as CSV
-        const csvData = rows.map(row => `${row.game_id},${row.crash_value}`).join('\n');
+        const csvData = rows.reverse().map(row => `${row.game_id},${row.crash_value}`).join('\n');
         const csvFilePath = path.join(__dirname, 'data', 'exported_data.csv');
 
         // Write CSV data to file

@@ -87,6 +87,7 @@
                             <label for="lastNGames">Last N:</label>
                             <input type="number" id="lastNGames" name="lastNGames" min="1" value="30000">
                             <button onclick="analyzeGames()">Submit</button>
+                            <button onclick="exportCSV()">Export</button>
                         </div>
                         <div id="analysisResult">
                             <!-- Analysis result will be displayed here -->
@@ -226,6 +227,15 @@
                 .then(response => response.json())
                 .then(data => displayAnalysisResult(data))
                 .catch(error => console.error('Error:', error));
+        }
+
+        function exportCSV() {
+            const userInput = prompt("Export Last N Records: ", 300);
+            const lastNGames = parseInt(userInput);
+
+            if (!isNaN(lastNGames)) {
+                window.open(`/api/export_csv/${lastNGames}`, '_blank');
+            }
         }
 
         function displayAnalysisResult(arrResult) {
